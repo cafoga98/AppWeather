@@ -19,13 +19,14 @@ import 'package:unipilotoconmutacion/Model/data_weather.dart';
 import 'package:unipilotoconmutacion/Services/pdf_generator.dart';
 import 'package:unipilotoconmutacion/Services/persister.dart' as global;
 import 'package:unipilotoconmutacion/Services/service_unipiloto.dart';
+import 'package:unipilotoconmutacion/utils/text_styles.dart';
+
 class MasDetalles extends StatefulWidget {
   @override
   _MasDetallesState createState() => _MasDetallesState();
 }
 
 class _MasDetallesState extends State<MasDetalles> {
-
   PDFgen creator = new PDFgen();
   bool GeerateOrNoGenerate = false;
   final api = new ServiceUniPiloto();
@@ -39,16 +40,18 @@ class _MasDetallesState extends State<MasDetalles> {
 
   Future<String> GeneratePdfForReport({Key key, @required ListDataPDF}) async {
     print("LLEGO A GENERAR EL PDF");
-    if(ListDataPDF != null){
+    if (ListDataPDF != null) {
       print("ESTA GENERANDO EL PDF...");
-      Future<dynamic> future = creator.generateDocument(PdfPageFormat.a4, ListDataPDF);  // Result of foo() as a future.
+      Future<dynamic> future = creator.generateDocument(
+          PdfPageFormat.a4, ListDataPDF); // Result of foo() as a future.
       future.then((filePdf) async {
         final directory = await getApplicationDocumentsDirectory();
         final file = File("${directory.path}/reporte_climatico.pdf");
-        global.DateFrom ='0000-00-00';
+        global.DateFrom = '0000-00-00';
         await file.writeAsBytes(filePdf);
-        var resulbool = await FlutterShareFile.shareImage(directory.path, "reporte_climatico.pdf");
-        if(resulbool == true){
+        var resulbool = await FlutterShareFile.share(
+            directory.path, "reporte_climatico.pdf", ShareFileType.pdf);
+        if (resulbool == true) {
           setState(() {
             print("PDF GENERADO CORRECTAMENTE...");
             global.ProgressPDF = false;
@@ -61,10 +64,10 @@ class _MasDetallesState extends State<MasDetalles> {
           ListDataPDF.clear();
         });
         return "ok";
-      }).catchError((e){
+      }).catchError((e) {
         return "bad";
       });
-    }else{
+    } else {
       print("ERROR AL GENERAR EL PDF...");
     }
   }
@@ -74,25 +77,35 @@ class _MasDetallesState extends State<MasDetalles> {
       print("LLEGO A OBTENER LOS DATOS");
       int count = 0;
       int cantidadDef = 0;
-      Future<List<DataWeather>> future2 = api.getWeather(FechaInit: global.DateFrom, HoraInit: "00:00:00", FechaEnd: global.DateFrom, HoraEnd: "23:59:59");  // Result of foo() as a future.
+      Future<List<DataWeather>> future2 = api.getWeather(
+          FechaInit: global.DateFrom,
+          HoraInit: "00:00:00",
+          FechaEnd: global.DateFrom,
+          HoraEnd: "23:59:59"); // Result of foo() as a future.
       future2.then((List<DataWeather> value) async {
         print("SE OBTUVIERON LOS DATOS CORRECTAMENTE");
         cantidadDef = value.length;
         print("CANTIDAD DE DATOS EN EL RAGO DE FECHAS: ${value.length}");
-        value.forEach((val){
-          count ++;
+        value.forEach((val) {
+          count++;
           var Radia = double.parse(val.Radiacion).round();
           var Tempe = val.Temperatura;
           var Hum = val.Humedad;
 
-          List<String> agregar = ['$count','${val.Fecha}', '$Radia', '$Tempe', '$Hum'];
+          List<String> agregar = [
+            '$count',
+            '${val.Fecha}',
+            '$Radia',
+            '$Tempe',
+            '$Hum'
+          ];
           ListTable.add(agregar);
           //print("---> Cantidad en la Lista de la Tabla: ${ListTable.length}");
         });
         print("RETORNANDO LISTA DEL FUTURE...");
         return await GeneratePdfForReport(ListDataPDF: ListTable);
         //return ListTable;
-      }).catchError((e){
+      }).catchError((e) {
         return "bad";
       });
     } on Exception catch (e) {
@@ -100,11 +113,9 @@ class _MasDetallesState extends State<MasDetalles> {
     }
   }
 
-  Future<List> CreateList() async {
+  Future<List> CreateList() async {}
 
-  }
-
-  GenerateGraphic({Key key, @required String DataType}){
+  GenerateGraphic({Key key, @required String DataType}) {
     print('''
     ******************************************************
     ******************************************************
@@ -120,24 +131,28 @@ class _MasDetallesState extends State<MasDetalles> {
     String HourInit = '00:00:00';
     List DateSend = new List();
     List NumberSend = new List();
-    String SendDayToday= formatDate.format(now);
+    String SendDayToday = formatDate.format(now);
     var cant = 0;
     int cont = 0;
-    Future<List<DataWeather>> future = api.getWeather(FechaInit: SendDayToday, HoraInit: HourInit, FechaEnd: SendDayToday, HoraEnd: HourEnd);  // Result of foo() as a future.
-    future.then((List<DataWeather> value){
+    Future<List<DataWeather>> future = api.getWeather(
+        FechaInit: SendDayToday,
+        HoraInit: HourInit,
+        FechaEnd: SendDayToday,
+        HoraEnd: HourEnd); // Result of foo() as a future.
+    future.then((List<DataWeather> value) {
       cant = value.length;
       print("CANTIDAD DE LA LISTA DEL SERVICIO: $cant");
-      switch(DataType){
+      switch (DataType) {
         case 'Temperatura':
           print('''
     =====================================================
     GRAFICA DE TIPO: $DataType
     ======================================================
                                     ''');
-          value.forEach((val){
-            cont ++;
+          value.forEach((val) {
+            cont++;
             print("CONTADOR PARA $DataType: ${cont}");
-            if(cont == 720){
+            if (cont == 720) {
               print('''
         -----------------------------------------
         -> Radiacion: ${val.Radiacion},
@@ -146,7 +161,8 @@ class _MasDetallesState extends State<MasDetalles> {
         |
         -> Humedad: ${val.Humedad}
         ''');
-              var impri = ''' '${formatHour.format(DateTime.parse(val.Fecha))}' ''';
+              var impri =
+                  ''' '${formatHour.format(DateTime.parse(val.Fecha))}' ''';
               DateSend.add(impri);
               NumberSend.add(int.parse(val.Temperatura));
               cont = 0;
@@ -194,10 +210,10 @@ class _MasDetallesState extends State<MasDetalles> {
     GRAFICA DE TIPO: $DataType
     ======================================================
                                     ''');
-          value.forEach((val){
-            cont ++;
+          value.forEach((val) {
+            cont++;
             print("CONTADOR PARA $DataType: ${cont}");
-            if(cont == 720){
+            if (cont == 720) {
               print('''
         -----------------------------------------
         -> Radiacion: ${val.Radiacion},
@@ -206,7 +222,8 @@ class _MasDetallesState extends State<MasDetalles> {
         |
         -> Humedad: ${val.Humedad}
         ''');
-              var impri = ''' '${formatHour.format(DateTime.parse(val.Fecha))}' ''';
+              var impri =
+                  ''' '${formatHour.format(DateTime.parse(val.Fecha))}' ''';
               DateSend.add(impri);
               NumberSend.add(double.parse(val.Radiacion).round());
               cont = 0;
@@ -254,10 +271,10 @@ class _MasDetallesState extends State<MasDetalles> {
     GRAFICA DE TIPO: $DataType
     ======================================================
                                     ''');
-          value.forEach((val){
-            cont ++;
+          value.forEach((val) {
+            cont++;
             print("CONTADOR PARA $DataType: ${cont}");
-            if(cont == 720){
+            if (cont == 720) {
               print('''
         -----------------------------------------
         -> Radiacion: ${val.Radiacion},
@@ -266,7 +283,8 @@ class _MasDetallesState extends State<MasDetalles> {
         |
         -> Humedad: ${val.Humedad}
         ''');
-              var impri = ''' '${formatHour.format(DateTime.parse(val.Fecha))}' ''';
+              var impri =
+                  ''' '${formatHour.format(DateTime.parse(val.Fecha))}' ''';
               DateSend.add(impri);
               NumberSend.add(int.parse(val.Humedad));
               cont = 0;
@@ -309,33 +327,42 @@ class _MasDetallesState extends State<MasDetalles> {
           });
           return null;
         default:
-        // Página de erro
-        print('''
+          // Página de erro
+          print('''
         --------------------------------------------------------
         NO SE PUDO GENERAR LA GRAFICA
         ________________________________________________________
         ''');
           return null;
-      };
+      }
+      ;
     }).catchError((e) => 499);
   }
 
-
-  List<DropdownMenuItem> DropList = [DropdownMenuItem(child: Text('Diario'), value: 1,),DropdownMenuItem(child: Text('Semanal'), value: 2,),DropdownMenuItem(child: Text('Mensual'), value: 3,)];
- var valorInit;
- var valorInit2;
+  List<DropdownMenuItem> DropList = [
+    DropdownMenuItem(
+      child: Text('Diario'),
+      value: 1,
+    ),
+    DropdownMenuItem(
+      child: Text('Semanal'),
+      value: 2,
+    ),
+    DropdownMenuItem(
+      child: Text('Mensual'),
+      value: 3,
+    )
+  ];
+  var valorInit;
+  var valorInit2;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         height: MediaQuery.of(context).size.height,
-        color: Color(0xFFC50B0B),
+        color: Colors.amberAccent,
         width: MediaQuery.of(context).size.width,
-//        decoration: BoxDecoration(
-//            image: DecorationImage(
-//                image: AssetImage("assets/img/generadorclima.jpg"),fit: BoxFit.fill)
-//        ),
         child: Container(
           margin: EdgeInsets.all(15),
           child: ListView(
@@ -344,54 +371,44 @@ class _MasDetallesState extends State<MasDetalles> {
                 runSpacing: 9,
                 direction: Axis.horizontal,
                 children: <Widget>[
-
-
-                  Container(
-                    height: MediaQuery.of(context).size.height/12,
-                    width: MediaQuery.of(context).size.width,
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(10))
-                    ),
-                    child: Center(
-                      child: Container(
-                        height: 34,
-                        width: MediaQuery.of(context).size.width,
-
-                        decoration: BoxDecoration(
-                            image: DecorationImage(
-                                image: AssetImage("assets/img/pilotonegro.png")
-                            )
-                        ),
-                      ),
+                  Center(
+                    child: Container(
+                      height: 80,
+                      width: MediaQuery.of(context).size.width / 2.4,
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage("assets/img/logo_detector.png"),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.white70,
+                                blurRadius: 40,
+                                spreadRadius: 4)
+                          ]),
                     ),
                   ),
-
                   Container(
-                    height: MediaQuery.of(context).size.height/1.9,
+                    height: MediaQuery.of(context).size.height / 1.9,
                     width: MediaQuery.of(context).size.width,
                     decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(10))
-                    ),
+                        borderRadius: BorderRadius.all(Radius.circular(10))),
                     child: Column(
                       children: <Widget>[
                         Container(
                           height: 10,
                         ),
-
                         FittedBox(
-                          child: Text(Title,
-                              style: GoogleFonts.cinzel(
+                          child: Text(
+                            Title,
+                            style: defaultStyle(
                                 fontSize: 25,
-                                fontWeight: FontWeight.w300,
-                              ),),
-                        ),
-
-                        Container(
-                          margin: EdgeInsets.only(
-                            left: 10
+                                color: Colors.black,
+                                fontWeight: FontWeight.w300),
                           ),
+                        ),
+                        Container(
+                          margin: EdgeInsets.only(left: 10),
                           key: UniqueKey(),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.all(Radius.circular(15)),
@@ -401,162 +418,177 @@ class _MasDetallesState extends State<MasDetalles> {
                             captureAllGestures: true,
                           ),
                           width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height/2.5,
+                          height: MediaQuery.of(context).size.height / 2.5,
                         ),
-
-                    ListView(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      children: <Widget>[
-                        Center(
-                          child: Wrap(
-                            direction: Axis.horizontal,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            runAlignment: WrapAlignment.spaceEvenly,
-                            spacing: 10,
-                            children: <Widget>[
-                              ArgonButton(
-                                borderRadius: 25,
-                                height: 40,
-                                roundLoadingShape: false,
-                                minWidth: 70,
-                                width: MediaQuery.of(context).size.width/4,
-                                color: Color(0xFFC50B0B),
-                                child: Text("Temperatura",
-                                  style: GoogleFonts.cinzel(
-                                    textStyle: Theme.of(context).textTheme.display1,
-                                    fontSize: 10,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                  ),),
-                                loader: Container(
-                                  padding: EdgeInsets.all(10),
-                                  child: Center(
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          Center(
-                                            child: LoadingIndicator(indicatorType: Indicator.audioEqualizer, color: Colors.white),
-                                          )
-                                        ],
-                                      )
+                        ListView(
+                          scrollDirection: Axis.vertical,
+                          shrinkWrap: true,
+                          children: <Widget>[
+                            Center(
+                              child: Wrap(
+                                direction: Axis.horizontal,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                runAlignment: WrapAlignment.spaceEvenly,
+                                spacing: 10,
+                                children: <Widget>[
+                                  ArgonButton(
+                                    borderRadius: 10,
+                                    height: 40,
+                                    roundLoadingShape: false,
+                                    minWidth: 70,
+                                    width:
+                                        MediaQuery.of(context).size.width / 4,
+                                    color: Colors.blue,
+                                    child: Text(
+                                      "Temperatura",
+                                      style: defaultStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500),
+                                    ),
+                                    loader: Container(
+                                      padding: EdgeInsets.all(10),
+                                      child: Center(
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: <Widget>[
+                                            Center(
+                                              child: LoadingIndicator(
+                                                  indicatorType:
+                                                      Indicator.audioEqualizer,
+                                                  color: Colors.white),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: (startLoading, stopLoading,
+                                        btnState) async {
+                                      startLoading();
+                                      setState(() {
+                                        Title = 'Temperatura';
+                                        GenerateGraphic(
+                                            DataType: 'Temperatura');
+                                      });
+                                      Timer timer = new Timer(
+                                          new Duration(seconds: 2), () {
+                                        print(
+                                            "Cargando la grafica de Temperatura...");
+                                        stopLoading();
+                                      });
+                                    },
                                   ),
-                                ),
-                                onTap: (startLoading, stopLoading, btnState) async {
-                                  startLoading();
-                                  setState(() {
-                                    Title = 'Temperatura';
-                                    GenerateGraphic(DataType: 'Temperatura');
-                                  });
-                                  Timer timer = new Timer(new Duration(seconds: 2), () {
-                                    print("Cargando la grafica de Temperatura...");
-                                    stopLoading();
-                                  });
-                                },
+                                  ArgonButton(
+                                    borderRadius: 10,
+                                    height: 40,
+                                    roundLoadingShape: false,
+                                    minWidth: 70,
+                                    width:
+                                        MediaQuery.of(context).size.width / 4,
+                                    color: Colors.blue,
+                                    child: Text(
+                                      "Radiación",
+                                      style: defaultStyle(
+                                          fontWeight: FontWeight.w500),
+                                    ),
+                                    loader: Container(
+                                      padding: EdgeInsets.all(10),
+                                      child: Center(
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: <Widget>[
+                                            Center(
+                                              child: LoadingIndicator(
+                                                  indicatorType:
+                                                      Indicator.audioEqualizer,
+                                                  color: Colors.white),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: (startLoading, stopLoading,
+                                        btnState) async {
+                                      startLoading();
+                                      setState(() {
+                                        Title = 'Radiación';
+                                        GenerateGraphic(DataType: 'Radiacion');
+                                      });
+                                      Timer timer = new Timer(
+                                          new Duration(seconds: 2), () {
+                                        print(
+                                            "Cargando la grafica de Radiación...");
+                                        stopLoading();
+                                      });
+                                    },
+                                  ),
+                                  ArgonButton(
+                                    borderRadius: 10,
+                                    height: 40,
+                                    roundLoadingShape: false,
+                                    minWidth: 70,
+                                    width:
+                                        MediaQuery.of(context).size.width / 4,
+                                    color: Colors.blue,
+                                    child: Text(
+                                      "Humedad",
+                                      style: defaultStyle(
+                                          fontWeight: FontWeight.w500),
+                                    ),
+                                    loader: Container(
+                                      padding: EdgeInsets.all(10),
+                                      child: Center(
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: <Widget>[
+                                            Center(
+                                              child: LoadingIndicator(
+                                                  indicatorType:
+                                                      Indicator.audioEqualizer,
+                                                  color: Colors.white),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: (startLoading, stopLoading,
+                                        btnState) async {
+                                      startLoading();
+                                      setState(() {
+                                        Title = 'Humedad';
+                                        GenerateGraphic(DataType: 'Humedad');
+                                      });
+                                      Timer timer = new Timer(
+                                          new Duration(seconds: 2), () {
+                                        print(
+                                            "Cargando la grafica de Humedad...");
+                                        stopLoading();
+                                      });
+                                    },
+                                  )
+                                ],
                               ),
-                              ArgonButton(
-                                borderRadius: 25,
-                                height: 40,
-                                roundLoadingShape: false,
-                                minWidth: 70,
-                                width: MediaQuery.of(context).size.width/4,
-                                color: Color(0xFFC50B0B),
-                                child: Text("Radiación",
-                                  style: GoogleFonts.cinzel(
-                                    textStyle: Theme.of(context).textTheme.display1,
-                                    fontSize: 10,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                  ),),
-                                loader: Container(
-                                  padding: EdgeInsets.all(10),
-                                  child: Center(
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          Center(
-                                            child: LoadingIndicator(indicatorType: Indicator.audioEqualizer, color: Colors.white),
-                                          )
-                                        ],
-                                      )
-                                  ),
-                                ),
-                                onTap: (startLoading, stopLoading, btnState) async {
-                                  startLoading();
-                                  setState(() {
-                                    Title = 'Radiación';
-                                    GenerateGraphic(DataType: 'Radiacion');
-                                  });
-                                  Timer timer = new Timer(new Duration(seconds: 2), () {
-                                    print("Cargando la grafica de Radiación...");
-                                    stopLoading();
-                                  });
-                                },
-                              ),
-                              ArgonButton(
-                                borderRadius: 25,
-                                height: 40,
-                                roundLoadingShape: false,
-                                minWidth: 70,
-                                width: MediaQuery.of(context).size.width/4,
-                                color: Color(0xFFC50B0B),
-                                child: Text("Humedad",
-                                  style: GoogleFonts.cinzel(
-                                    textStyle: Theme.of(context).textTheme.display1,
-                                    fontSize: 10,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                  ),),
-                                loader: Container(
-                                  padding: EdgeInsets.all(10),
-                                  child: Center(
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          Center(
-                                            child: LoadingIndicator(indicatorType: Indicator.audioEqualizer, color: Colors.white),
-                                          )
-                                        ],
-                                      )
-                                  ),
-                                ),
-                                onTap: (startLoading, stopLoading, btnState) async {
-                                  startLoading();
-                                  setState(() {
-                                    Title = 'Humedad';
-                                    GenerateGraphic(DataType: 'Humedad');
-                                  });
-                                  Timer timer = new Timer(new Duration(seconds: 2), () {
-                                    print("Cargando la grafica de Humedad...");
-                                    stopLoading();
-                                  });
-                                },
-                              )
-                            ],
-                          )
+                            ),
+                          ],
                         )
-                      ],
-                    )
-
                       ],
                     ),
                   ),
-
                   Container(
                     width: MediaQuery.of(context).size.width,
                     decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(10))
-                    ),
+                        borderRadius: BorderRadius.all(Radius.circular(10))),
                     child: Container(
-                      margin: EdgeInsets.only(
-                        top: 5,
-                        right: 40,
-                        left: 40
-                      ),
+                      margin: EdgeInsets.only(top: 5, right: 40, left: 40),
                       child: Wrap(
                         runSpacing: 2,
                         runAlignment: WrapAlignment.start,
@@ -565,62 +597,58 @@ class _MasDetallesState extends State<MasDetalles> {
                           Container(
                             margin: EdgeInsets.all(10),
                           ),
-
                           Container(
                             width: MediaQuery.of(context).size.width,
                             child: Text('Generar Informe',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.cinzel(
-                                fontSize: 25,
-                                fontWeight: FontWeight.w300,
-                              ),),
+                                textAlign: TextAlign.center,
+                                style: defaultStyle(
+                                    fontSize: 25,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w300)),
                           ),
-
                           Container(
                             width: MediaQuery.of(context).size.width,
-                            child: Text('Por favor selecciona una fecha para generar tu reporte diario.',
+                            child: Text(
+                              'Por favor selecciona una fecha para generar tu reporte diario.',
                               textAlign: TextAlign.start,
-                              style: GoogleFonts.cinzel(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w300,
-                              ),),
+                              style: defaultStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w300),
+                            ),
                           ),
-
                           Container(
                             height: 15,
                           ),
-
                           Wrap(
                             direction: Axis.horizontal,
                             runAlignment: WrapAlignment.start,
                             spacing: 10,
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: <Widget>[
-
                               InkWell(
-                                onTap: (){
+                                onTap: () {
                                   DatePicker.showDatePicker(context,
                                       showTitleActions: true,
                                       minTime: DateTime(2020, 05, 22),
                                       maxTime: DateTime(2025, 12, 30),
                                       onChanged: (date) {
-                                        print('change $date');
-                                      },
-                                      onConfirm: (date) {
-                                        print('confirm $date');
-                                        setState(() {
-                                          global.DateFrom = (formatDate.format(date)).toString();
-                                        });
-                                      },
+                                    print('change $date');
+                                  }, onConfirm: (date) {
+                                    print('confirm $date');
+                                    setState(() {
+                                      global.DateFrom =
+                                          (formatDate.format(date)).toString();
+                                    });
+                                  },
                                       currentTime: DateTime.now(),
-                                      locale: LocaleType.en
-                                  );
+                                      locale: LocaleType.en);
                                 },
                                 child: Center(
                                   child: Text(
                                     global.DateFrom,
                                     style: GoogleFonts.cinzel(
-                                      textStyle: Theme.of(context).textTheme.display1,
+                                      textStyle:
+                                          Theme.of(context).textTheme.display1,
                                       fontSize: 20,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -630,17 +658,12 @@ class _MasDetallesState extends State<MasDetalles> {
                             ],
                           ),
                           Container(
-                            height: 5,
-                          ),
-
-                          Container(
                             height: 15,
                           ),
-
                           InkWell(
                             key: UniqueKey(),
-                            onTap: (){
-                              if(global.DateFrom != '0000-00-00'){
+                            onTap: () {
+                              if (global.DateFrom != '0000-00-00') {
                                 showAnimatedDialog(
                                   context: context,
                                   barrierDismissible: true,
@@ -650,8 +673,8 @@ class _MasDetallesState extends State<MasDetalles> {
                                       positiveText: 'Continuar',
                                       negativeText: 'Cancelar',
                                       contentText:
-                                      'Esto podría tardar alrededor de 10 a 30 minutos, deseas continuar?',
-                                      onNegativeClick: (){
+                                          'Esto podría tardar alrededor de 10 a 30 minutos, deseas continuar?',
+                                      onNegativeClick: () {
                                         Navigator.of(context).pop();
                                       },
                                       onPositiveClick: () async {
@@ -659,7 +682,8 @@ class _MasDetallesState extends State<MasDetalles> {
                                         setState(() {
                                           global.ProgressPDF = true;
                                         });
-                                        Future.delayed(Duration(seconds: 1), ()async{
+                                        Future.delayed(Duration(seconds: 1),
+                                            () async {
                                           await GetDataForReport();
                                         });
                                       },
@@ -669,121 +693,45 @@ class _MasDetallesState extends State<MasDetalles> {
                                   curve: Curves.fastOutSlowIn,
                                   duration: Duration(seconds: 1),
                                 );
-                              }else{
-                                Toast.show("Escoge una fecha", context, duration: Toast.LENGTH_SHORT, gravity:  Toast.BOTTOM);
+                              } else {
+                                Toast.show("Escoge una fecha", context,
+                                    duration: Toast.LENGTH_SHORT,
+                                    gravity: Toast.BOTTOM);
                               }
                             },
                             child: Container(
                               width: MediaQuery.of(context).size.width,
                               height: 45,
                               decoration: BoxDecoration(
-                                  color: Color(0xFFC50B0B),
-                                  borderRadius: BorderRadius.all(Radius.circular(10))
-                              ),
+                                  color: Colors.blue,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10))),
                               child: Center(
-                                  child: global.ProgressPDF != true ? Text("Generar",
-                                    style: GoogleFonts.cinzel(
-                                      textStyle: Theme.of(context).textTheme.display1,
-                                      fontSize: 15,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w500,
-                                    ),) : Text("Cargando...",
-                                    style: GoogleFonts.cinzel(
-                                      textStyle: Theme.of(context).textTheme.display1,
-                                      fontSize: 15,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w500,
-                                    ),)
-                              ),
-                            )
-                          ),
-
-                          /*ArgonButton(
-                            borderRadius: 10,
-                            height: 45,
-                            roundLoadingShape: false,
-                            minWidth: 200,
-                            width: MediaQuery.of(context).size.width,
-                            color: Color(0xFFC50B0B),
-                            child: Text("Generar",
-                              style: GoogleFonts.cinzel(
-                                textStyle: Theme.of(context).textTheme.display1,
-                                fontSize: 15,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500,
-                              ),),
-                            loader: Container(
-                              padding: EdgeInsets.all(10),
-                              child: Center(
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    *//*Container(
-                                    width: 20,
-                                  ),*//*
-                                    Text(
-                                      "Cargando...",
-                                      style: GoogleFonts.cinzel(
-                                        textStyle: Theme.of(context).textTheme.display1,
-                                        fontSize: 10,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w500,
+                                child: global.ProgressPDF != true
+                                    ? Text("Generar",
+                                        style: defaultStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w500))
+                                    : Text(
+                                        "Cargando...",
+                                        style: defaultStyle(fontSize: 15),
                                       ),
-                                    ),
-                                    LoadingIndicator(indicatorType: Indicator.ballTrianglePath, color: Colors.white),
-                                    *//*Container(
-                                    width: 20,
-                                  ),*//*
-                                  ],
-                                )
                               ),
                             ),
-                            onTap: (startLoading, stopLoading, btnState) async {
-                              if(global.DateFrom != '0000-00-00'){
-                                startLoading();
-                                showAnimatedDialog(
-                                  context: context,
-                                  barrierDismissible: true,
-                                  builder: (BuildContext context) {
-                                    return ClassicGeneralDialogWidget(
-                                      titleText: 'Advertencia!',
-                                      positiveText: 'Continuar',
-                                      negativeText: 'Cancelar',
-                                      contentText:
-                                      'Esto podría tardar alrededor de 10 a 30 minutos, deseas continuar?',
-                                      onNegativeClick: (){
-                                        Navigator.of(context).pop();
-                                        stopLoading();
-                                      },
-                                      onPositiveClick: () async {
-                                        Navigator.of(context).pop();
-                                        await GetDataForReport();
-                                      },
-                                    );
-                                  },
-                                  animationType: DialogTransitionType.size,
-                                  curve: Curves.fastOutSlowIn,
-                                  duration: Duration(seconds: 1),
-                                );
-                              }else{
-                                Toast.show("Escoge una fecha", context, duration: Toast.LENGTH_SHORT, gravity:  Toast.BOTTOM);
-                              }
-                            },
-                          ),*/
+                          ),
                           Container(
                             margin: EdgeInsets.all(5),
                           ),
                         ],
                       ),
-                    )
-                  )
+                    ),
+                  ),
                 ],
               )
             ],
-          )
-        )
-      )
+          ),
+        ),
+      ),
     );
   }
 

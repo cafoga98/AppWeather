@@ -25,7 +25,7 @@ class _SplashState extends State<Splash> {
     return Scaffold(
         body: Container(
             decoration: BoxDecoration(
-                image: DecorationImage(image: AssetImage("assets/img/gifpiloto.gif"), fit: BoxFit.cover)
+                image: DecorationImage(image: AssetImage("assets/img/fondo.jpg"), fit: BoxFit.cover)
             ),
             child: Center(
                 child: Container(
@@ -41,7 +41,7 @@ class _SplashState extends State<Splash> {
                               width: MediaQuery.of(context).size.width/1,
                               height: 120,
                               decoration: BoxDecoration(
-                                  image: DecorationImage(image: AssetImage("assets/img/piloto.png"))
+                                  image: DecorationImage(image: AssetImage("assets/img/logo_detector.png"))
                               ),
                             ),
                         ),
@@ -62,7 +62,7 @@ class _SplashState extends State<Splash> {
                               ),
                               circularStrokeCap: CircularStrokeCap.butt,
                               backgroundColor: Colors.white,
-                              progressColor: Colors.red,
+                              progressColor: Colors.amberAccent,
                             ),
                           )
                         ),

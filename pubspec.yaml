@@ -90,6 +90,8 @@ flutter:
 
   assets:
     - assets/img/pilotonegro.png
+    - assets/img/fondo.jpg
+    - assets/img/logo_detector.png
     - assets/img/nubesgif.gif
     - assets/img/nubes_climatica.jpg
     - assets/img/piloto.png
